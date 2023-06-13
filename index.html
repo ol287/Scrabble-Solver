@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+		<title>Scrabble Solver</title>
+
+		<link rel="shortcut icon" type="image/png" href="favicon.png" />
+		<link
+			href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css"
+			rel="stylesheet"
+		/>
+
+		<link href="main.css" rel="stylesheet" />
+	</head>
+	<body class="min-h-screen flex items-center justify-center">
+		<main class="p-4 mx-auto text-center">
+			<h1 class="text-5xl font-bold">Scrabble Solver</h1>
+			<p class="text-2xl font-light">
+				Search for valid scrabble words, click on resulting words to see
+				their dictionary definitions.
+			</p>
+			<form
+				id="query"
+				class="flex flex-col items-center justify-center px-4"
+			>
+				<input
+					id="letters"
+					type="text"
+					class="border p-2 mt-6 text-2xl appearance-none border-2 border-gray-200 font-light rounded-lg shadow border focus:outline-none lowercase bg-gray-200 focus:bg-white text-gray-900 focus:outline-none focus:border-black"
+					minlength="2"
+					maxlength="12"
+					pattern="[A-Za-z]+"
+					title="Please only enter letters"
+					placeholder="Enter letters..."
+					autocomplete="off"
+					size="16"
+					required
+				/>
+				<button
+					class="mt-4 block px-4 py-2 text-xl font-bold rounded"
+					type="submit"
+				>
+					Solve!
+				</button>
+			</form>
+
+			<svg
+				id="results-loader"
+				class="mt-10 w-10 h-10 fill-current text-gray-900 mx-auto"
+				style="display:none;"
+			>
+				<use xlink:href="#loading-icon"></use>
+			</svg>
+
+			<div
+				id="results-error"
+				class="rounded-lg inline-block text-lg mt-10 inline-flex items-center bg-red-600 text-white text-sm font-bold px-4 py-3"
+				role="alert"
+				style="display:none"
+			>
+				<svg class="fill-current w-4 h-4 mr-2" viewbox="0 0 24 24">
+					<path
+						d="M13,13H11V7H13M13,17H11V15H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"
+					/>
+				</svg>
+				<p>There was an error</p>
+			</div>
+
+			<div
+				id="results"
+				class="relative mt-4 p-4 text-xl bg-white border border-black rounded-lg shadow text-gray-900"
+				style="display:none;"
+			>
+				<div class="relative inline-block mx-auto top-0 mt-4">
+					<select
+						id="sort"
+						class="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline"
+					>
+						<option value="score" selected>Sort by Score</option>
+						<option value="length">Sort by Length</option>
+					</select>
+					<div
+						class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
+					>
+						<svg
+							class="fill-current h-4 w-4"
+							xmlns="http://www.w3.org/2000/svg"
+							viewbox="0 0 20 20"
+						>
+							<path
+								d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"
+							/>
+						</svg>
+					</div>
+				</div>
+				<div id="results-list" class="mt-4"></div>
+			</div>
+		</main>
+
+		<div
+			id="dictionary-modal"
+			class="md:h-auto md:w-auto text-gray-900"
+			style="display:none;"
+			role="dialog"
+		>
+			<button
+				id="overlay"
+				class="fixed top-0 right-0 bottom-0 h-full w-full bg-black opacity-75"
+			></button>
+			<div
+				id="modal"
+				class="fixed w-full bg-white p-4 md:rounded md:shadow-lg"
+			>
+				<div id="modal-inner" class=" modal-inner">
+					<div id="modal-body" class="text-lg"></div>
+
+					<svg
+						id="definition-loader"
+						class="mt-10 w-10 h-10 fill-current text-gray-900 mx-auto"
+						style="display:none;"
+					>
+						<use xlink:href="#loading-icon"></use>
+					</svg>
+				</div>
+				<button
+					id="close-modal"
+					class="absolute right-0 top-0 hover:text-white hover:bg-gray-900 rounded mt-2 mr-2"
+				>
+					<svg class="fill-current w-8 h-8" viewbox="0 0 24 24">
+						<path
+							d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+						/>
+					</svg>
+				</button>
+			</div>
+		</div>
+
+		<div style="display:none">
+			<svg
+				id="loading-icon"
+				viewbox="0 0 135 140"
+				xmlns="http://www.w3.org/2000/svg"
+			>
+				<rect y="10" width="15" height="120" rx="6">
+					<animate
+						attributename="height"
+						begin="0.5s"
+						dur="1s"
+						values="120;110;100;90;80;70;60;50;40;140;120"
+						calcmode="linear"
+						repeatcount="indefinite"
+					/>
+					<animate
+						attributename="y"
+						begin="0.5s"
+						dur="1s"
+						values="10;15;20;25;30;35;40;45;50;0;10"
+						calcmode="linear"
+						repeatcount="indefinite"
+					/>
+				</rect>
+				<rect x="30" y="10" width="15" height="120" rx="6">
+					<animate
+						attributename="height"
+						begin="0.25s"
+						dur="1s"
+						values="120;110;100;90;80;70;60;50;40;140;120"
+						calcmode="linear"
+						repeatcount="indefinite"
+					/>
+					<animate
+						attributename="y"
+						begin="0.25s"
+						dur="1s"
+						values="10;15;20;25;30;35;40;45;50;0;10"
+						calcmode="linear"
+						repeatcount="indefinite"
+					/>
+				</rect>
+				<rect x="60" width="15" height="140" rx="6">
+					<animate
+						attributename="height"
+						begin="0s"
+						dur="1s"
+						values="120;110;100;90;80;70;60;50;40;140;120"
+						calcmode="linear"
+						repeatcount="indefinite"
+					/>
+					<animate
+						attributename="y"
+						begin="0s"
+						dur="1s"
+						values="10;15;20;25;30;35;40;45;50;0;10"
+						calcmode="linear"
+						repeatcount="indefinite"
+					/>
+				</rect>
+				<rect x="90" y="10" width="15" height="120" rx="6">
+					<animate
+						attributename="height"
+						begin="0.25s"
+						dur="1s"
+						values="120;110;100;90;80;70;60;50;40;140;120"
+						calcmode="linear"
+						repeatcount="indefinite"
+					/>
+					<animate
+						attributename="y"
+						begin="0.25s"
+						dur="1s"
+						values="10;15;20;25;30;35;40;45;50;0;10"
+						calcmode="linear"
+						repeatcount="indefinite"
+					/>
+				</rect>
+				<rect x="120" y="10" width="15" height="120" rx="6">
+					<animate
+						attributename="height"
+						begin="0.5s"
+						dur="1s"
+						values="120;110;100;90;80;70;60;50;40;140;120"
+						calcmode="linear"
+						repeatcount="indefinite"
+					/>
+					<animate
+						attributename="y"
+						begin="0.5s"
+						dur="1s"
+						values="10;15;20;25;30;35;40;45;50;0;10"
+						calcmode="linear"
+						repeatcount="indefinite"
+					/>
+				</rect>
+			</svg>
+		</div>
+		<script src="https://unpkg.com/jquery/dist/jquery.min.js"></script>
+		<script src="index.js"></script>
+	</body>
+</html>
