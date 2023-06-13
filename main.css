@@ -31,9 +31,9 @@ h2 {
 
 body {
 	/* background: url('images/seamless-wood-bg.jpg') repeat; */
-	/* background-color: #bfa07a; */
+	/* background-color: #11a0d9; */
 	color: white;
-	background-image: radial-gradient(circle, #bfa07a, #8a7459);
+	background-image: radial-gradient(circle, #11a0d9, #8a7459);
 	background-attachment: fixed;
 }
 
